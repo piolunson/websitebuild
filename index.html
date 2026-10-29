@@ -62,28 +62,37 @@ var h='<!DOCTYPE html>\n<html lang="pl"><head><meta charset="utf-8"><meta name="
 +'.mini-box img{width:100%;display:block;margin-bottom:12px;border-radius:4px}\n.dl{display:inline-block;margin-top:14px;padding:8px 18px;background:'+S.accent+';color:#fff;font:20px "'+S.hf+'",sans-serif;border-radius:4px;transition:.3s}\n.dl:hover{opacity:.8}\n'
 +'.mini-box::after{content:"";position:absolute;left:0;top:0;background:'+S.accent+';width:3px;height:0;transition:height .3s}\n'
 +'.mini-box:hover::after{height:100%}\n'
++'.boxy a,.mini-box a:not(.dl),.foot a{color:inherit;text-decoration:underline}\n'
 +'.foot{background:'+S.footerBg+';color:'+S.footerColor+';margin:60px 15px 0;padding:24px 30px;text-align:center;font-size:16px}\n.wm{text-align:center;font:13px "'+S.bf+'",sans-serif;padding:20px 0 0;opacity:.7}.wm a{color:inherit}\n'
 +'@media(max-width:800px){.boxy{margin:30px 15px 0}.mini-boxy{margin:30px 15px 0;flex-direction:column}}\n'
 +'</style></head>\n<body>\n<div class="menu">'
 +(S.logo?'<img src="'+S.logo+'" alt="logo">':'<span class="logo">LOGO</span>')
 +S.menu.map(function(m){return '<a class="l" href="'+q(m.href||'#')+'" style="'+(m.c?'--c:'+m.c+';':'')+(m.hc?'--h:'+m.hc:'')+'">'+esc(m.t)+'</a>'}).join('')+'</div>\n';
 S.blocks.forEach(function(b){
-if(b.t=='box')h+='<div class="boxy"><h2>'+esc(b.title)+'</h2><div>'+esc(b.text)+'</div></div>\n';
+if(b.t=='box')h+='<div class="boxy"><h2>'+esc(b.title)+'</h2><div>'+fmt(b.text)+'</div></div>\n';
 else if(b.t=='btn')h+='<div class="mini-boxy">'+b.items.map(btnH).join('')+'</div>\n';
-else h+='<div class="mini-boxy">'+b.items.map(function(i){return '<div class="mini-box">'+(i.img?'<img src="'+i.img+'" alt="">':'')+'<h3>'+esc(i.title)+'</h3>'+esc(i.text)+(i.img?'<br><a class="dl" download="'+q(i.fname||'obraz')+'" href="'+i.img+'">'+esc(S.dlText)+'</a>':'')+'</div>'}).join('')+'</div>\n'});
-if(S.footerOn)h+='<div class="foot">'+esc(S.footerText)+'</div>\n';
+else h+='<div class="mini-boxy">'+b.items.map(function(i){return '<div class="mini-box">'+(i.img?'<img src="'+i.img+'" alt="">':'')+'<h3>'+esc(i.title)+'</h3>'+fmt(i.text)+(i.img?'<br><a class="dl" download="'+q(i.fname||'obraz')+'" href="'+i.img+'">'+esc(S.dlText)+'</a>':'')+'</div>'}).join('')+'</div>\n'});
+if(S.footerOn)h+='<div class="foot">'+fmt(S.footerText)+'</div>\n';
 if(S.wm)h+='<div class="wm">Made with <a href="https://github.com/piolunson/websitebuild" target="_blank" rel="noopener">github.com/piolunson/websitebuild</a></div>\n';
 if(h.indexOf('data-gh')>-1)h+='<script>document.addEventListener("click",function(e){var a=e.target.closest("a[data-gh]");if(!a)return;e.preventDefault();var u=a.dataset.gh,n=u.split("/").pop();fetch(u).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){var l=document.createElement("a");l.href=URL.createObjectURL(b);l.download=n;document.body.appendChild(l);l.click();l.remove()}).catch(function(){window.open(u,"_blank")})});<\/script>\n';
 return h+'</body></html>'}
 function q(s){return esc(s).replace(/"/g,'&quot;')}
 function save(n,c,m){try{var b=new Blob([c],{type:m}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}catch(e){document.getElementById('code').value=c;document.getElementById('out').style.display='block'}}
+function fmt(s){s=esc(s);
+s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(m,t,u){if(/^\s*(javascript|data|vbscript):/i.test(u))u='#';return '<a href="'+u.replace(/"/g,'&quot;')+'" target="_blank" rel="noopener">'+t+'</a>'});
+return s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/__(.+?)__/g,'<u>$1</u>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/\*(.+?)\*/g,'<i>$1</i>')}
+var LF=null;
+function fmtSel(k){var f=LF;if(!f||!f.isConnected)return;var a=f.selectionStart,b=f.selectionEnd,v=f.value,s=v.slice(a,b),w={b:['**','**'],i:['*','*'],u:['__','__'],s:['~~','~~']}[k],r,ss=a,se;
+if(k=='a'){r='['+(s||'tekst')+'](https://adres)';ss=a+r.indexOf('](')+2;se=ss+13}
+else{r=w[0]+(s||'tekst')+w[1];se=a+r.length}
+f.value=v.slice(0,a)+r+v.slice(b);f.focus();f.selectionStart=ss;f.selectionEnd=se;f.dispatchEvent(new Event('input',{bubbles:true}))}
 function nb(){return {title:'Pobierz program',text:'Opis',label:'Pobierz',mode:'github',url:'',file:'',fname:''}}
 function ghRaw(u){u=(u||'').trim();var m=u.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/(?:blob|raw)\/(.+)$/);return m?'https://raw.githubusercontent.com/'+m[1]+'/'+m[2]+'/'+m[3].replace(/\?.*$/,''):u}
 function btnH(i){var x,c='class="dl"',m=i.mode||'github';
 if(m=='github'){var r=ghRaw(i.url);x='<a '+c+' href="'+q(r||'#')+'" data-gh="'+q(r)+'">'}
 else if(m=='download')x='<a '+c+' href="'+q(i.file||i.url||'#')+'" download="'+q(i.fname||'plik')+'">';
 else x='<a '+c+' href="'+q(i.url||'#')+'" target="_blank" rel="noopener">';
-return '<div class="mini-box"><h3>'+esc(i.title)+'</h3>'+esc(i.text)+'<br>'+x+esc(i.label||'Kliknij')+'</a></div>'}
+return '<div class="mini-box"><h3>'+esc(i.title)+'</h3>'+fmt(i.text)+'<br>'+x+esc(i.label||'Kliknij')+'</a></div>'}
 function btnEd(i,j,it){var k='data-b="'+i+'" data-j="'+j+'"',m=it.mode||'github',o=function(v,t){return '<option value="'+v+'"'+(m==v?' selected':'')+'>'+t+'</option>'};
 return '<div class="sub"><div class="hd"><b>Przycisk '+(j+1)+'</b><button data-di="'+i+'.'+j+'">×</button></div>'
 +'<label>Tytuł</label><input type="text" '+k+' data-k="title" value="'+q(it.title)+'">'
@@ -96,7 +105,7 @@ return '<div class="sub"><div class="hd"><b>Przycisk '+(j+1)+'</b><button data-d
 function prev(){document.getElementById('pv').srcdoc=build()}
 function opt(v,c){return FONTS.map(function(f){return '<option'+(f==S[c]?' selected':'')+'>'+f+'</option>'}).join('')}
 function ed(){
-var h='<h3>Wygląd</h3><div class="row"><div><label>Tło (kolor)</label><input type="color" data-g="bg" value="'+S.bg+'"></div><div><label>Boxy</label><input type="color" data-g="panel" value="'+S.panel+'"></div></div>'
+var h='<div id="tb" style="position:sticky;top:-14px;z-index:5;background:var(--pn);padding:6px 0;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><button data-fm="b" style="font-weight:700">B</button><button data-fm="i" style="font-style:italic">I</button><button data-fm="u" style="text-decoration:underline">U</button><button data-fm="s" style="text-decoration:line-through">S</button><button data-fm="a">Link</button><span style="font-size:11px;color:#888">formatuje zaznaczony tekst w polu „Tekst”</span></div><h3>Wygląd</h3><div class="row"><div><label>Tło (kolor)</label><input type="color" data-g="bg" value="'+S.bg+'"></div><div><label>Boxy</label><input type="color" data-g="panel" value="'+S.panel+'"></div></div>'
 +'<div class="row"><div><label>Tekst</label><input type="color" data-g="text" value="'+S.text+'"></div><div><label>Akcent (hover)</label><input type="color" data-g="accent" value="'+S.accent+'"></div></div>'
 +'<label>Tło (obraz)</label><input type="file" accept="image/*" id="fbg"> <button id="xbg">Usuń</button>'
 +'<label>Logo</label><input type="file" accept="image/*" id="flg"> <button id="xlg">Usuń</button>'
@@ -120,6 +129,7 @@ h+='<div class="row"><button data-ab="box">+ Box</button><button data-ab="mini">
 document.getElementById('ed').innerHTML=h}
 function rd(f,cb){if(!f)return;var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)}
 var E=document.getElementById('ed');
+E.addEventListener('focusin',function(e){var t=e.target;if(t.dataset&&(t.dataset.k=='text'||t.dataset.g=='footerText'))LF=t});
 E.addEventListener('input',function(e){var t=e.target,d=t.dataset;
 if(d.g){S[d.g]=t.value;if(d.g=='bg')S.bgImg=S.bgImg}
 else if(d.m!==undefined)S.menu[+d.m][d.k]=t.value;
@@ -135,6 +145,7 @@ if(t.dataset.fi){var p=t.dataset.fi.split('.'),f=t.files[0],it=S.blocks[+p[0]].i
 if(t.tagName=='SELECT'){if(t.dataset.b!==undefined){S.blocks[+t.dataset.b].items[+t.dataset.j][t.dataset.k]=t.value;ed()}else S[t.dataset.g]=t.value;prev()}});
 E.addEventListener('click',function(e){var t=e.target,d=t.dataset;if(t.tagName!='BUTTON')return;
 if(t.id=='xbg')S.bgImg='';else if(t.id=='xlg')S.logo='';
+else if(d.fm){fmtSel(d.fm);return}
 else if(t.id=='sh'){save('index.html',build(),'text/html');return}
 else if(t.id=='sp'){save('projekt.wbl',JSON.stringify(S),'application/json');return}
 else if(t.id=='op'){document.getElementById('fp').click();return}
