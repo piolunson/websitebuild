@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Web Builder</title>
+<style>
+:root{color-scheme:dark;--bg:#141414;--pn:#1e1e1e;--ln:#333;--tx:#eee;--ac:#c2410c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px system-ui,sans-serif;display:flex}
+#ed{width:340px;min-width:300px;overflow-y:auto;background:var(--pn);border-right:1px solid var(--ln);padding:14px}
+#pv{flex:1;border:0;background:#fff}
+h3{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#aaa}
+h3:first-child{margin-top:0}
+label{display:block;font-size:12px;color:#aaa;margin:8px 0 3px}
+input[type=text],textarea,select{width:100%;background:#111;color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 8px;font:inherit}
+textarea{min-height:60px;resize:vertical}
+input[type=color]{width:100%;height:30px;background:#111;border:1px solid var(--ln);border-radius:6px;padding:2px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button{background:#2b2b2b;color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover{background:#383838}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+.blk{border:1px solid var(--ln);border-radius:8px;padding:10px;margin:10px 0;background:#181818}
+.blk .hd{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.blk .hd b{flex:1;font-size:12px}
+.blk .hd button{padding:2px 8px}
+.sub{border-left:2px solid var(--ln);padding-left:8px;margin:8px 0}
+#out{display:none;position:fixed;inset:0;background:#000c;z-index:9;padding:24px}
+#out>div{background:var(--pn);border-radius:10px;height:100%;padding:14px;display:flex;flex-direction:column;gap:10px}
+#out textarea{flex:1;font:12px monospace}
+@media(max-width:800px){body{flex-direction:column}#ed{width:100%;height:50%;border-right:0}#pv{height:50%}}
+</style>
+</head>
+<body>
+<div id="ed"></div>
+<iframe id="pv" title="Podgląd"></iframe>
+<div id="out"><div><b>Gotowy kod strony — skopiuj i zapisz jako index.html</b><textarea id="code" readonly></textarea><div class="row"><button class="p" id="cp">Kopiuj</button><button id="cl">Zamknij</button></div></div></div>
+<script>
+var S={bg:'#1a1a1a',bgImg:'',logo:'',accent:'#571000',panel:'#0d0d0d',text:'#ffffff',menuText:'#e7e5e2',menuBg:'#0d0d0d',menuHover:'#ffffff',menuSize:25,dlText:'Pobierz',hf:'Bebas Neue',bf:'Ubuntu',
+menu:[{t:'kontakt',href:'#',c:'',hc:''}],
+blocks:[{t:'box',title:'Tytuł boxa',text:'Tutaj znajdzie się treść Twojej strony.'},
+{t:'mini',items:[{title:'Box 1',text:'Tekst boxa nr.1'},{title:'Box 2',text:'Tekst boxa nr.2'},{title:'Box 3',text:'Tekst boxa nr.3'}]}]};
+var FONTS=['Bebas Neue','Ubuntu','Caacupe One','Roboto','Montserrat','Poppins','Playfair Display','Inter','Space Mono'];
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
+function build(){
+var fam=[S.hf,S.bf].filter(function(v,i,a){return a.indexOf(v)==i}).map(function(f){return 'family='+f.replace(/ /g,'+')+':wght@400;700'}).join('&');
+var bg=S.bgImg?'background:url("'+S.bgImg+'") center/cover no-repeat fixed;':'background:'+S.bg+';';
+var h='<!DOCTYPE html>\n<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Moja strona</title>\n'
++'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
++'<link href="https://fonts.googleapis.com/css2?'+fam+'&display=swap" rel="stylesheet">\n<style>\n'
++'body{margin:0;padding-bottom:40px;'+bg+'font-family:"'+S.bf+'",sans-serif;color:'+S.text+'}\n'
++'a{text-decoration:none}\n'
++'.menu{background:'+S.menuBg+';padding:20px 30px;margin:20px 15px 0;display:flex;align-items:center;gap:20px}\n'
++'.menu img{height:40px}.menu .logo{font:25px "'+S.hf+'",sans-serif;color:'+S.menuText+'}\n'
++'.menu a.l{font:'+S.menuSize+'px "'+S.hf+'",sans-serif;color:var(--c,'+S.menuText+');transition:.3s}\n.menu a.l:hover{color:var(--h,'+S.menuHover+')}\n'
++'.boxy{padding:20px 30px;font-size:20px;background:'+S.panel+';margin:60px 145px 0}\n'
++'.boxy h2{margin:0 0 10px;font-family:"'+S.hf+'",sans-serif;font-size:36px}\n'
++'.mini-boxy{display:flex;gap:15px;margin:50px 200px 0;align-items:stretch}\n'
++'.mini-box{padding:30px;background:'+S.panel+';flex:1;font-size:18px;position:relative}\n'
++'.mini-box h3{margin:0 0 8px;font-family:"'+S.hf+'",sans-serif;font-size:26px}\n'
++'.mini-box img{width:100%;display:block;margin-bottom:12px;border-radius:4px}\n.dl{display:inline-block;margin-top:14px;padding:8px 18px;background:'+S.accent+';color:#fff;font:20px "'+S.hf+'",sans-serif;border-radius:4px;transition:.3s}\n.dl:hover{opacity:.8}\n'
++'.mini-box::after{content:"";position:absolute;left:0;top:0;background:'+S.accent+';width:3px;height:0;transition:height .3s}\n'
++'.mini-box:hover::after{height:100%}\n'
++'@media(max-width:800px){.boxy{margin:30px 15px 0}.mini-boxy{margin:30px 15px 0;flex-direction:column}}\n'
++'</style></head>\n<body>\n<div class="menu">'
++(S.logo?'<img src="'+S.logo+'" alt="logo">':'<span class="logo">LOGO</span>')
++S.menu.map(function(m){return '<a class="l" href="'+q(m.href||'#')+'" style="'+(m.c?'--c:'+m.c+';':'')+(m.hc?'--h:'+m.hc:'')+'">'+esc(m.t)+'</a>'}).join('')+'</div>\n';
+S.blocks.forEach(function(b){
+if(b.t=='box')h+='<div class="boxy"><h2>'+esc(b.title)+'</h2><div>'+esc(b.text)+'</div></div>\n';
+else if(b.t=='btn')h+='<div class="mini-boxy">'+b.items.map(btnH).join('')+'</div>\n';
+else h+='<div class="mini-boxy">'+b.items.map(function(i){return '<div class="mini-box">'+(i.img?'<img src="'+i.img+'" alt="">':'')+'<h3>'+esc(i.title)+'</h3>'+esc(i.text)+(i.img?'<br><a class="dl" download="'+q(i.fname||'obraz')+'" href="'+i.img+'">'+esc(S.dlText)+'</a>':'')+'</div>'}).join('')+'</div>\n'});
+if(h.indexOf('data-gh')>-1)h+='<script>document.addEventListener("click",function(e){var a=e.target.closest("a[data-gh]");if(!a)return;e.preventDefault();var u=a.dataset.gh,n=u.split("/").pop();fetch(u).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){var l=document.createElement("a");l.href=URL.createObjectURL(b);l.download=n;document.body.appendChild(l);l.click();l.remove()}).catch(function(){window.open(u,"_blank")})});<\/script>\n';
+return h+'</body></html>'}
+function q(s){return esc(s).replace(/"/g,'&quot;')}
+function save(n,c,m){try{var b=new Blob([c],{type:m}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}catch(e){document.getElementById('code').value=c;document.getElementById('out').style.display='block'}}
+function nb(){return {title:'Pobierz program',text:'Opis',label:'Pobierz',mode:'github',url:'',file:'',fname:''}}
+function ghRaw(u){u=(u||'').trim();var m=u.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/(?:blob|raw)\/(.+)$/);return m?'https://raw.githubusercontent.com/'+m[1]+'/'+m[2]+'/'+m[3].replace(/\?.*$/,''):u}
+function btnH(i){var x,c='class="dl"',m=i.mode||'github';
+if(m=='github'){var r=ghRaw(i.url);x='<a '+c+' href="'+q(r||'#')+'" data-gh="'+q(r)+'">'}
+else if(m=='download')x='<a '+c+' href="'+q(i.file||i.url||'#')+'" download="'+q(i.fname||'plik')+'">';
+else x='<a '+c+' href="'+q(i.url||'#')+'" target="_blank" rel="noopener">';
+return '<div class="mini-box"><h3>'+esc(i.title)+'</h3>'+esc(i.text)+'<br>'+x+esc(i.label||'Kliknij')+'</a></div>'}
+function btnEd(i,j,it){var k='data-b="'+i+'" data-j="'+j+'"',m=it.mode||'github',o=function(v,t){return '<option value="'+v+'"'+(m==v?' selected':'')+'>'+t+'</option>'};
+return '<div class="sub"><div class="hd"><b>Przycisk '+(j+1)+'</b><button data-di="'+i+'.'+j+'">×</button></div>'
++'<label>Tytuł</label><input type="text" '+k+' data-k="title" value="'+q(it.title)+'">'
++'<label>Tekst</label><textarea '+k+' data-k="text">'+it.text.replace(/</g,'&lt;')+'</textarea>'
++'<label>Napis na przycisku</label><input type="text" '+k+' data-k="label" value="'+q(it.label)+'">'
++'<label>Co robi przycisk</label><select '+k+' data-k="mode">'+o('github','GitHub – pobierz plik z linku')+o('download','Pobierz plik ze strony (wgraj)')+o('open','Otwórz link')+'</select>'
++(m=='download'?'<label>Plik do pobrania'+(it.fname?' ('+q(it.fname)+')':'')+'</label><input type="file" data-ff="'+i+'.'+j+'">'
+:'<label>'+(m=='github'?'Link do pliku na GitHubie (blob, raw lub release)':'Link')+'</label><input type="text" '+k+' data-k="url" placeholder="https://github.com/user/repo/blob/main/plik.zip" value="'+q(it.url)+'">')
++'</div>'}
+function prev(){document.getElementById('pv').srcdoc=build()}
+function opt(v,c){return FONTS.map(function(f){return '<option'+(f==S[c]?' selected':'')+'>'+f+'</option>'}).join('')}
+function ed(){
+var h='<h3>Wygląd</h3><div class="row"><div><label>Tło (kolor)</label><input type="color" data-g="bg" value="'+S.bg+'"></div><div><label>Boxy</label><input type="color" data-g="panel" value="'+S.panel+'"></div></div>'
++'<div class="row"><div><label>Tekst</label><input type="color" data-g="text" value="'+S.text+'"></div><div><label>Akcent (hover)</label><input type="color" data-g="accent" value="'+S.accent+'"></div></div>'
++'<label>Tło (obraz)</label><input type="file" accept="image/*" id="fbg"> <button id="xbg">Usuń</button>'
++'<label>Logo</label><input type="file" accept="image/*" id="flg"> <button id="xlg">Usuń</button>'
++'<div class="row"><div><label>Czcionka nagłówków</label><select data-g="hf">'+opt(0,'hf')+'</select></div><div><label>Czcionka tekstu</label><select data-g="bf">'+opt(0,'bf')+'</select></div></div>'
++'<h3>Menu</h3><div class="row"><div><label>Tło menu</label><input type="color" data-g="menuBg" value="'+S.menuBg+'"></div><div><label>Kolor linków</label><input type="color" data-g="menuText" value="'+S.menuText+'"></div></div><div class="row"><div><label>Kolor hover</label><input type="color" data-g="menuHover" value="'+S.menuHover+'"></div><div><label>Rozmiar (px)</label><input type="number" data-g="menuSize" value="'+S.menuSize+'" min="10" max="60" style="width:100%;background:#111;color:#eee;border:1px solid #333;border-radius:6px;padding:6px"></div></div><label>Przyciski</label>';
+S.menu.forEach(function(m,i){h+='<div class="blk"><div class="hd"><b>Przycisk '+(i+1)+'</b><button data-dm="'+i+'">×</button></div><label>Tekst</label><input type="text" data-m="'+i+'" data-k="t" value="'+q(m.t)+'"><label>Link (URL)</label><input type="text" data-m="'+i+'" data-k="href" value="'+q(m.href)+'"><div class="row"><div><label>Kolor</label><input type="color" data-m="'+i+'" data-k="c" value="'+(m.c||S.menuText)+'"></div><div><label>Hover</label><input type="color" data-m="'+i+'" data-k="hc" value="'+(m.hc||S.menuHover)+'"></div></div></div>'});
+h+='<button data-am>+ Link</button><h3>Sekcje</h3><label>Tekst przycisku pobierania</label><input type="text" data-g="dlText" value="'+q(S.dlText)+'">';
+S.blocks.forEach(function(b,i){
+h+='<div class="blk"><div class="hd"><b>'+(b.t=='box'?'Box':b.t=='btn'?'Przyciski':'Mini boxy')+'</b><button data-up="'+i+'">↑</button><button data-dn="'+i+'">↓</button><button data-db="'+i+'">×</button></div>';
+if(b.t=='box')h+='<label>Tytuł</label><input type="text" data-b="'+i+'" data-k="title" value="'+esc(b.title).replace(/"/g,'&quot;')+'"><label>Tekst</label><textarea data-b="'+i+'" data-k="text">'+b.text.replace(/</g,'&lt;')+'</textarea>';
+else if(b.t=='btn'){b.items.forEach(function(it,j){h+=btnEd(i,j,it)});h+='<button data-ai="'+i+'">+ Przycisk</button>'}
+else{b.items.forEach(function(it,j){h+='<div class="sub"><div class="hd"><b>Mini box '+(j+1)+'</b><button data-di="'+i+'.'+j+'">×</button></div><input type="text" data-b="'+i+'" data-j="'+j+'" data-k="title" value="'+esc(it.title).replace(/"/g,'&quot;')+'"><textarea data-b="'+i+'" data-j="'+j+'" data-k="text">'+it.text.replace(/</g,'&lt;')+'</textarea><label>Obraz (z przyciskiem pobierz)</label><input type="file" accept="image/*" data-fi="'+i+'.'+j+'"> '+(it.img?'<button data-xi="'+i+'.'+j+'">Usuń obraz</button>':'')+'</div>'});
+h+='<button data-ai="'+i+'">+ Mini box</button>'}
+h+='</div>'});
+h+='<div class="row"><button data-ab="box">+ Box</button><button data-ab="mini">+ Rząd mini boxów</button></div><div class="row" style="margin-top:6px"><button data-ab="btn">+ Rząd przycisków</button></div>'
++'<h3>Projekt</h3><div class="row"><button id="sp">Zapisz projekt (.wbl)</button><button id="op">Importuj projekt</button></div><input type="file" id="fp" accept=".wbl,application/json" style="display:none">'
++'<h3>Eksport</h3><div class="row"><button class="p" id="sh">Zapisz HTML</button><button id="ex">Pokaż kod</button></div>';
+document.getElementById('ed').innerHTML=h}
+function rd(f,cb){if(!f)return;var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)}
+var E=document.getElementById('ed');
+E.addEventListener('input',function(e){var t=e.target,d=t.dataset;
+if(d.g){S[d.g]=t.value;if(d.g=='bg')S.bgImg=S.bgImg}
+else if(d.m!==undefined)S.menu[+d.m][d.k]=t.value;
+else if(d.b!==undefined){var b=S.blocks[+d.b];(d.j!==undefined?b.items[+d.j]:b)[d.k]=t.value}
+prev()});
+E.addEventListener('change',function(e){var t=e.target;
+if(t.id=='fp'&&t.files[0]){var fr=new FileReader();fr.onload=function(){try{var d=JSON.parse(fr.result);if(!d||!Array.isArray(d.blocks)||!Array.isArray(d.menu))throw 0;Object.assign(S,d);ed();prev()}catch(x){alert('Nieprawidłowy plik .wbl')}};fr.readAsText(t.files[0]);t.value=''}
+if(t.id=='fbg')rd(t.files[0],function(u){S.bgImg=u;prev()});
+if(t.id=='flg')rd(t.files[0],function(u){S.logo=u;prev()});
+if(t.dataset.ff){var p2=t.dataset.ff.split('.'),f2=t.files[0],it2=S.blocks[+p2[0]].items[+p2[1]];rd(f2,function(u){it2.file=u;it2.fname=f2.name;ed();prev()})}
+if(t.dataset.fi){var p=t.dataset.fi.split('.'),f=t.files[0],it=S.blocks[+p[0]].items[+p[1]];rd(f,function(u){it.img=u;it.fname=f.name;ed();prev()})}
+if(t.tagName=='SELECT'){if(t.dataset.b!==undefined){S.blocks[+t.dataset.b].items[+t.dataset.j][t.dataset.k]=t.value;ed()}else S[t.dataset.g]=t.value;prev()}});
+E.addEventListener('click',function(e){var t=e.target,d=t.dataset;if(t.tagName!='BUTTON')return;
+if(t.id=='xbg')S.bgImg='';else if(t.id=='xlg')S.logo='';
+else if(t.id=='sh'){save('index.html',build(),'text/html');return}
+else if(t.id=='sp'){save('projekt.wbl',JSON.stringify(S),'application/json');return}
+else if(t.id=='op'){document.getElementById('fp').click();return}
+else if(t.id=='ex'){document.getElementById('code').value=build();document.getElementById('out').style.display='block';return}
+else if(d.am!==undefined)S.menu.push({t:'link',href:'#',c:'',hc:''});
+else if(d.dm)S.menu.splice(+d.dm,1);
+else if(d.dm===''||d.dm==='0')S.menu.splice(0,1);
+else if(d.ab=='box')S.blocks.push({t:'box',title:'Nowy box',text:'Treść...'});
+else if(d.ab=='btn')S.blocks.push({t:'btn',items:[nb()]});
+else if(d.ab=='mini')S.blocks.push({t:'mini',items:[{title:'Box 1',text:'Tekst'},{title:'Box 2',text:'Tekst'},{title:'Box 3',text:'Tekst'}]});
+else if(d.ai){var bb=S.blocks[+d.ai];bb.items.push(bb.t=='btn'?nb():{title:'Nowy',text:'Tekst'})}
+else if(d.ai==='')S.blocks[0].items.push({title:'Nowy',text:'Tekst'});
+else if(d.db!==undefined)S.blocks.splice(+d.db,1);
+else if(d.xi){var p=d.xi.split('.'),it=S.blocks[+p[0]].items[+p[1]];it.img='';it.fname=''}
+else if(d.di){var p=d.di.split('.');S.blocks[+p[0]].items.splice(+p[1],1)}
+else if(d.up!==undefined){var i=+d.up;if(i>0){var x=S.blocks.splice(i,1)[0];S.blocks.splice(i-1,0,x)}}
+else if(d.dn!==undefined){var i=+d.dn;if(i<S.blocks.length-1){var x=S.blocks.splice(i,1)[0];S.blocks.splice(i+1,0,x)}}
+else return;
+ed();prev()});
+document.getElementById('cl').onclick=function(){document.getElementById('out').style.display='none'};
+document.getElementById('cp').onclick=function(){var c=document.getElementById('code');c.select();
+try{navigator.clipboard.writeText(c.value)}catch(e){try{document.execCommand('copy')}catch(e2){}}};
+ed();prev();
+</script>
+</body>
+</html>
