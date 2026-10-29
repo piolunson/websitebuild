@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Web Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#141414;--pn:#1e1e1e;--ln:#333;--tx:#eee;--ac:#c2410c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}
@@ -45,7 +46,7 @@ var FONTS=['Bebas Neue','Ubuntu','Caacupe One','Roboto','Montserrat','Poppins','
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
 function build(){
 var fam=[S.hf,S.bf].filter(function(v,i,a){return a.indexOf(v)==i}).map(function(f){return 'family='+f.replace(/ /g,'+')+':wght@400;700'}).join('&');
-var bg=S.bgImg?'background:url("'+S.bgImg+'") center/cover no-repeat fixed;':'background:'+S.bg+';';
+var bg=S.bgImg?'background:url("'+ref(S.bgImg,'background')+'") center/cover no-repeat fixed;':'background:'+S.bg+';';
 var h='<!DOCTYPE html>\n<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Moja strona</title>\n'
 +'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
 +'<link href="https://fonts.googleapis.com/css2?'+fam+'&display=swap" rel="stylesheet">\n<style>\n'
@@ -66,18 +67,18 @@ var h='<!DOCTYPE html>\n<html lang="pl"><head><meta charset="utf-8"><meta name="
 +'.foot{background:'+S.footerBg+';color:'+S.footerColor+';margin:60px 15px 0;padding:24px 30px;text-align:center;font-size:16px}\n.wm{text-align:center;font:13px "'+S.bf+'",sans-serif;padding:20px 0 0;opacity:.7}.wm a{color:inherit}\n'
 +'@media(max-width:800px){.boxy{margin:30px 15px 0}.mini-boxy{margin:30px 15px 0;flex-direction:column}}\n'
 +'</style></head>\n<body>\n<div class="menu">'
-+(S.logo?'<img src="'+S.logo+'" alt="logo">':'<span class="logo">LOGO</span>')
++(S.logo?'<img src="'+ref(S.logo,'logo')+'" alt="logo">':'<span class="logo">LOGO</span>')
 +S.menu.map(function(m){return '<a class="l" href="'+q(m.href||'#')+'" style="'+(m.c?'--c:'+m.c+';':'')+(m.hc?'--h:'+m.hc:'')+'">'+esc(m.t)+'</a>'}).join('')+'</div>\n';
 S.blocks.forEach(function(b){
 if(b.t=='box')h+='<div class="boxy"><h2>'+esc(b.title)+'</h2><div>'+fmt(b.text)+'</div></div>\n';
 else if(b.t=='btn')h+='<div class="mini-boxy">'+b.items.map(btnH).join('')+'</div>\n';
-else h+='<div class="mini-boxy">'+b.items.map(function(i){return '<div class="mini-box">'+(i.img?'<img src="'+i.img+'" alt="">':'')+'<h3>'+esc(i.title)+'</h3>'+fmt(i.text)+(i.img?'<br><a class="dl" download="'+q(i.fname||'obraz')+'" href="'+i.img+'">'+esc(S.dlText)+'</a>':'')+'</div>'}).join('')+'</div>\n'});
+else h+='<div class="mini-boxy">'+b.items.map(function(i){return '<div class="mini-box">'+(i.img?'<img src="'+ref(i.img,i.fname||'image')+'" alt="">':'')+'<h3>'+esc(i.title)+'</h3>'+fmt(i.text)+(i.img?'<br><a class="dl" download="'+q(i.fname||'obraz')+'" href="'+ref(i.img,i.fname||'image')+'">'+esc(S.dlText)+'</a>':'')+'</div>'}).join('')+'</div>\n'});
 if(S.footerOn)h+='<div class="foot">'+fmt(S.footerText)+'</div>\n';
 if(S.wm)h+='<div class="wm">Made with <a href="https://github.com/piolunson/websitebuild" target="_blank" rel="noopener">github.com/piolunson/websitebuild</a></div>\n';
 if(h.indexOf('data-gh')>-1)h+='<script>document.addEventListener("click",function(e){var a=e.target.closest("a[data-gh]");if(!a)return;e.preventDefault();var u=a.dataset.gh,n=u.split("/").pop();fetch(u).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){var l=document.createElement("a");l.href=URL.createObjectURL(b);l.download=n;document.body.appendChild(l);l.click();l.remove()}).catch(function(){window.open(u,"_blank")})});<\/script>\n';
 return h+'</body></html>'}
 function q(s){return esc(s).replace(/"/g,'&quot;')}
-function save(n,c,m){try{var b=new Blob([c],{type:m}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}catch(e){document.getElementById('code').value=c;document.getElementById('out').style.display='block'}}
+function save(n,c,m){try{var b=(c instanceof Blob)?c:new Blob([c],{type:m}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}catch(e){document.getElementById('code').value=c;document.getElementById('out').style.display='block'}}
 function fmt(s){s=esc(s);
 s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(m,t,u){if(/^\s*(javascript|data|vbscript):/i.test(u))u='#';return '<a href="'+u.replace(/"/g,'&quot;')+'" target="_blank" rel="noopener">'+t+'</a>'});
 return s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/__(.+?)__/g,'<u>$1</u>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/\*(.+?)\*/g,'<i>$1</i>')}
@@ -86,11 +87,15 @@ function fmtSel(k){var f=LF;if(!f||!f.isConnected)return;var a=f.selectionStart,
 if(k=='a'){r='['+(s||'tekst')+'](https://adres)';ss=a+r.indexOf('](')+2;se=ss+13}
 else{r=w[0]+(s||'tekst')+w[1];se=a+r.length}
 f.value=v.slice(0,a)+r+v.slice(b);f.focus();f.selectionStart=ss;f.selectionEnd=se;f.dispatchEvent(new Event('input',{bubbles:true}))}
+var AS=null,AM={};
+function ref(u,pref){if(!AS||!u||u.indexOf('data:')!=0)return u;if(AM[u])return AM[u];var m=u.match(/^data:([^;,]+)/),ex={'image/webp':'webp','image/jpeg':'jpg','image/png':'png','image/gif':'gif','image/svg+xml':'svg'}[m?m[1]:''],n=String(pref||'file').replace(/[^\w.\-]+/g,'_');if(ex&&!/\.\w+$/.test(n))n+='.'+ex;var c=1,b=n;while(AS.some(function(x){return x.n==n}))n=b.replace(/(\.\w+)?$/,'_'+(c++)+'$1');AS.push({n:n,data:u});AM[u]='assets/'+n;return AM[u]}
+function buildFiles(){AS=[];AM={};var h=build(),a=AS;AS=null;return{html:h,assets:a}}
+function dlZip(){if(typeof JSZip=='undefined'){alert('Nie wczytano biblioteki JSZip (brak internetu?).');return}var r=buildFiles(),z=new JSZip();z.file('index.html',r.html);r.assets.forEach(function(a){z.file('assets/'+a.n,a.data.split(',')[1],{base64:true})});z.generateAsync({type:'blob'}).then(function(b){save('strona.zip',b,'application/zip')})}
 function nb(){return {title:'Pobierz program',text:'Opis',label:'Pobierz',mode:'github',url:'',file:'',fname:''}}
 function ghRaw(u){u=(u||'').trim();var m=u.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/(?:blob|raw)\/(.+)$/);return m?'https://raw.githubusercontent.com/'+m[1]+'/'+m[2]+'/'+m[3].replace(/\?.*$/,''):u}
 function btnH(i){var x,c='class="dl"',m=i.mode||'github';
 if(m=='github'){var r=ghRaw(i.url);x='<a '+c+' href="'+q(r||'#')+'" data-gh="'+q(r)+'">'}
-else if(m=='download')x='<a '+c+' href="'+q(i.file||i.url||'#')+'" download="'+q(i.fname||'plik')+'">';
+else if(m=='download')x='<a '+c+' href="'+q(ref(i.file,i.fname||'plik')||i.url||'#')+'" download="'+q(i.fname||'plik')+'">';
 else x='<a '+c+' href="'+q(i.url||'#')+'" target="_blank" rel="noopener">';
 return '<div class="mini-box"><h3>'+esc(i.title)+'</h3>'+fmt(i.text)+'<br>'+x+esc(i.label||'Kliknij')+'</a></div>'}
 function btnEd(i,j,it){var k='data-b="'+i+'" data-j="'+j+'"',m=it.mode||'github',o=function(v,t){return '<option value="'+v+'"'+(m==v?' selected':'')+'>'+t+'</option>'};
@@ -125,7 +130,7 @@ h+='<div class="row"><button data-ab="box">+ Box</button><button data-ab="mini">
 +(S.footerOn?'<label>Tekst footera</label><input type="text" data-g="footerText" value="'+q(S.footerText)+'"><div class="row"><div><label>Tło</label><input type="color" data-g="footerBg" value="'+S.footerBg+'"></div><div><label>Kolor tekstu</label><input type="color" data-g="footerColor" value="'+S.footerColor+'"></div></div>':'')
 +'<label><input type="checkbox" data-c="wm"'+(S.wm?' checked':'')+'> Watermark „Made with github.com/piolunson/websitebuild”</label>'
 +'<h3>Projekt</h3><div class="row"><button id="sp">Zapisz projekt (.wbl)</button><button id="op">Importuj projekt</button></div><input type="file" id="fp" accept=".wbl,application/json" style="display:none">'
-+'<h3>Eksport</h3><div class="row"><button class="p" id="sh">Zapisz HTML</button><button id="ex">Pokaż kod</button></div>';
++'<h3>Eksport</h3><button class="p" id="sz" style="width:100%">Zapisz stronę (.zip — obrazy w osobnych plikach)</button><div class="row" style="margin-top:6px"><button id="sh">Tylko HTML (obrazy w kodzie)</button><button id="ex">Pokaż kod</button></div>';
 document.getElementById('ed').innerHTML=h}
 function rd(f,cb){if(!f)return;var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)}
 var E=document.getElementById('ed');
@@ -137,7 +142,7 @@ else if(d.b!==undefined){var b=S.blocks[+d.b];(d.j!==undefined?b.items[+d.j]:b)[
 prev()});
 E.addEventListener('change',function(e){var t=e.target;
 if(t.dataset.c){S[t.dataset.c]=t.checked;ed();prev()}
-if(t.id=='fp'&&t.files[0]){var fr=new FileReader();fr.onload=function(){try{var d=JSON.parse(fr.result);if(!d||!Array.isArray(d.blocks)||!Array.isArray(d.menu))throw 0;Object.assign(S,d);ed();prev()}catch(x){alert('Nieprawidłowy plik .wbl')}};fr.readAsText(t.files[0]);t.value=''}
+if(t.id=='fp'&&t.files[0]){var fr=new FileReader();fr.onload=function(){try{var d=JSON.parse(fr.result);if(!d||!Array.isArray(d.blocks)||!Array.isArray(d.menu))throw 0;d.menu=d.menu.map(function(m){return typeof m=='string'?{t:m,href:'#',c:'',hc:''}:m});Object.assign(S,d);ed();prev()}catch(x){alert('Nieprawidłowy plik .wbl')}};fr.readAsText(t.files[0]);t.value=''}
 if(t.id=='fbg')rd(t.files[0],function(u){S.bgImg=u;prev()});
 if(t.id=='flg')rd(t.files[0],function(u){S.logo=u;prev()});
 if(t.dataset.ff){var p2=t.dataset.ff.split('.'),f2=t.files[0],it2=S.blocks[+p2[0]].items[+p2[1]];rd(f2,function(u){it2.file=u;it2.fname=f2.name;ed();prev()})}
@@ -145,6 +150,7 @@ if(t.dataset.fi){var p=t.dataset.fi.split('.'),f=t.files[0],it=S.blocks[+p[0]].i
 if(t.tagName=='SELECT'){if(t.dataset.b!==undefined){S.blocks[+t.dataset.b].items[+t.dataset.j][t.dataset.k]=t.value;ed()}else S[t.dataset.g]=t.value;prev()}});
 E.addEventListener('click',function(e){var t=e.target,d=t.dataset;if(t.tagName!='BUTTON')return;
 if(t.id=='xbg')S.bgImg='';else if(t.id=='xlg')S.logo='';
+else if(t.id=='sz'){dlZip();return}
 else if(d.fm){fmtSel(d.fm);return}
 else if(t.id=='sh'){save('index.html',build(),'text/html');return}
 else if(t.id=='sp'){save('projekt.wbl',JSON.stringify(S),'application/json');return}
